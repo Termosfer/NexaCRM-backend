@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -48,4 +49,17 @@ public class User {
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id")
+    private Department department; // Hansı şöbədə işləyir?
+
+    private String jobTitle; // Vəzifəsi (Məs: Senior Makler)
+
+    @Enumerated(EnumType.STRING)
+    private UserStatus status = UserStatus.ACTIVE; // Default olaraq işə girən hər kəs Aktivdir
+
+    private BigDecimal salary; // Aylıq maaş
+    
+    private BigDecimal bonusAmount; // Topladığı bonuslar (Ayın işçisi üçün)
 }

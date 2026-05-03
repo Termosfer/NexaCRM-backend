@@ -2,9 +2,12 @@ package com.nexacrm.api.entity;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -58,4 +61,15 @@ public class Lead {
 	@CreationTimestamp
 	@Column(updatable = false)
 	private LocalDateTime createdAt;
+	
+	// 1. Bu satış (müştəri) hansı işçiyə (maklerə) tapşırılıb?
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_user_id")
+    private User assignedUser;
+
+    // 2. SEHİRLİ SÜTUN: Hər sektora və müraciət növünə (İcarə/Satış) uyğun dinamik məlumatlar burada saxlanacaq
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private Map<String, Object> customDetails;
+	
 }
