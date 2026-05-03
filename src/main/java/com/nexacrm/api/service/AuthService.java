@@ -5,6 +5,11 @@ import com.nexacrm.api.entity.*;
 import com.nexacrm.api.repository.*;
 import com.nexacrm.api.security.JwtUtils;
 import lombok.RequiredArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+import java.util.Optional;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,14 +20,16 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final OrganizationRepository organizationRepository;
+    private final PasswordResetTokenRepository tokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtils jwtUtils;
 
     @Transactional
     public User registerAdmin(RegisterRequest dto) {
-        // 1. Şirkəti yarat
+        // 1. Şirkəti yarat (DÜZƏLİŞ: Sektoru bura əlavə etdik)
         Organization org = Organization.builder()
                 .nameString(dto.getCompanyName())
+                .businessSector(dto.getBusinessSector()) // BU SƏTİR ÇOX VACİBDİR
                 .build();
         org = organizationRepository.save(org);
 
@@ -46,7 +53,6 @@ public class AuthService {
             throw new RuntimeException("E-poçt və ya şifrə yanlışdır");
         }
 
-        // Token yaradılır
         String token = jwtUtils.generateToken(
             user.getEmail(), 
             user.getOrganization().getId(), 
@@ -60,5 +66,45 @@ public class AuthService {
             user.getOrganization().getId(),
             user.getOrganization().getNameString()
         );
+    }
+
+    @Transactional
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Bu email-lə istifadəçi tapılmadı"));
+
+        tokenRepository.deleteByUser(user);
+
+        String token = UUID.randomUUID().toString();
+        PasswordResetToken resetToken = new PasswordResetToken(token, user);
+        tokenRepository.save(resetToken);
+
+        System.out.println("ŞİFRƏ SIFIRLAMA LİNKİ: http://localhost:5173/reset-password?token=" + token);
+    }
+
+    @Transactional
+    public void resetPassword(String token, String newPassword) {
+        PasswordResetToken resetToken = tokenRepository.findByToken(token)
+                .orElseThrow(() -> new RuntimeException("Keçərsiz və ya istifadə olunmuş token"));
+
+        if (resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+            tokenRepository.delete(resetToken);
+            throw new RuntimeException("Tokenin vaxtı bitib, yenidən müraciət edin");
+        }
+
+        User user = resetToken.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        tokenRepository.delete(resetToken);
+    }
+    
+    // DÜZƏLDİLMİŞ METOD: "Cannot infer type" xətası burada həll olundu
+    public String getSectorByEmail(String email) {
+        // 1. userRepository (kiçik hərflə) istifadə olunmalıdır
+        // 2. Metod referansları (::) tip xətalarının qarşısını alır
+        return userRepository.findByEmail(email)
+                .map(User::getOrganization)
+                .map(Organization::getBusinessSector)
+                .orElse("DEFAULT");
     }
 }
