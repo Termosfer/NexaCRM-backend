@@ -2,8 +2,14 @@ package com.nexacrm.api.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Entity
 @Table(name = "departments")
@@ -22,5 +28,10 @@ public class Department {
 
     // Bu şöbədə işləyən işçilərin siyahısı
     @OneToMany(mappedBy = "department", fetch = FetchType.LAZY)
+    @JsonIgnoreProperties("department") 
     private List<User> users;
+    
+    @CreationTimestamp
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
 }

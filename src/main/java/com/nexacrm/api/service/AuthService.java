@@ -26,20 +26,19 @@ public class AuthService {
 
     @Transactional
     public User registerAdmin(RegisterRequest dto) {
-        // 1. Şirkəti yarat (DÜZƏLİŞ: Sektoru bura əlavə etdik)
         Organization org = Organization.builder()
                 .nameString(dto.getCompanyName())
-                .businessSector(dto.getBusinessSector()) // BU SƏTİR ÇOX VACİBDİR
+                .businessSector(dto.getBusinessSector())
                 .build();
         org = organizationRepository.save(org);
 
-        // 2. Admini yarat
         User user = User.builder()
                 .name(dto.getFullName())
                 .email(dto.getEmail())
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .role(Role.ADMIN)
                 .organization(org)
+                .status(UserStatus.ACTIVE) // <--- BAX BUNU ƏLAVƏ ETMƏLİSƏN
                 .build();
 
         return userRepository.save(user);

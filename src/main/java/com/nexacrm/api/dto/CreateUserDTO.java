@@ -14,6 +14,7 @@ public class CreateUserDTO {
     private Role role; // MANAGER və ya USER
     private String jobTitle; // Məsələn: Senior Agent
     private BigDecimal salary;
+    private BigDecimal bonusAmount;
     private UUID departmentId; // İsteğə bağlı (Opsional)
     private UUID organizationId; 
 }
