@@ -44,7 +44,7 @@ public class AuthService {
         return userRepository.save(user);
     }
 
-    public AuthResponse login(LoginRequest dto) {
+  public AuthResponse login(LoginRequest dto) {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new RuntimeException("E-poçt və ya şifrə yanlışdır"));
 
@@ -60,10 +60,13 @@ public class AuthService {
 
         return new AuthResponse(
             token, 
+            user.getId(),          // YENİ ƏLAVƏ (İstifadəçi ID-si)
             user.getEmail(), 
+            user.getName(),        // YENİ ƏLAVƏ (İstifadəçi Adı)
             user.getRole().name(), 
             user.getOrganization().getId(),
-            user.getOrganization().getNameString()
+            user.getOrganization().getNameString(),
+            user.getOrganization().getBusinessSector() // YENİ ƏLAVƏ
         );
     }
 
